@@ -17,6 +17,8 @@ const COUNTRIES =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_admin_0_scale_rank.geojson';
 const US_STATES =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_1_states_provinces_shp.geojson'; //eslint-disable-line
+const ANCHORS = {start: 'start', middle: 'middle', end: 'end'};
+const BASELINES = {top: 'top', center: 'center', bottom: 'bottom'};
 
 const basemap = new GeoJsonLayer({
   id: 'base-map',
@@ -30,13 +32,16 @@ const basemap = new GeoJsonLayer({
   getFillColor: [200, 200, 200]
 });
 
+const [LEFT, TOP, RIGHT, BOTTOM] = [0, 1, 2, 3];
+
 /* eslint-disable react/no-deprecated */
 export default function App() {
   const [collideEnabled, setCollideEnabled] = useState(true);
   const [borderEnabled, setBorderEnabled] = useState(false);
   const [showPoints, setShowPoints] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
-  const [selectedCounty, selectCounty] = useState(null);
+  const [anchor, setAnchor] = useState('middle');
+  const [baseline, setBaseline] = useState('center');
 
   const viewState = {
     longitude: -122.42177834,
@@ -47,12 +52,6 @@ export default function App() {
     bearing: 0
   };
 
-  const onClickState = useCallback(info => selectCounty(info.object), []);
-  const onDataLoad = useCallback(geojson => {
-    const california = geojson.features.find(f => f.properties.name === 'California');
-    selectCounty(california);
-  }, []);
-
   const fontSize = 18;
   const data = 'sf.bike.parking.json';
   // const data = AIR_PORTS;
@@ -60,16 +59,45 @@ export default function App() {
   const getText = f => f.ADDRESS || f.properties.name;
   const dataTransform = d => (d.features ? d.features : d);
 
+  const backgroundPadding = [0, 0, 0, 0]; // 12 * fontSize, 0.75 * fontSize, 0, 0.75 * fontSize]; // Offset in opposite direction to alignment/anchor
+  const paddingX = 1.5 * fontSize;
+  const paddingY = 8 * fontSize;
+  if (baseline === 'top') {
+    backgroundPadding[TOP] = paddingX;
+  } else if (baseline === 'bottom') {
+    backgroundPadding[BOTTOM] = paddingX;
+  } else {
+    backgroundPadding[TOP] = 0.5 * paddingX;
+    backgroundPadding[BOTTOM] = 0.5 * paddingX;
+  }
+  if (anchor === 'start') {
+    backgroundPadding[LEFT] = paddingY;
+  } else if (anchor === 'end') {
+    backgroundPadding[RIGHT] = paddingY;
+  } else {
+    backgroundPadding[LEFT] = 0.5 * paddingY;
+    backgroundPadding[RIGHT] = 0.5 * paddingY;
+  }
+
+  const pointProps = {
+    data,
+    dataTransform,
+    getPosition,
+    radiusUnits: 'pixels',
+    stroked: true,
+    lineWidthMinPixels: 1,
+    billboard: true,
+    getFillColor: [0, 0, 255],
+    getLineColor: [255, 255, 255]
+  };
+
   const layers = [
+    showPoints && new ScatterplotLayer({id: 'points', getRadius: 2, ...pointProps}),
     showPoints &&
       new ScatterplotLayer({
-        id: 'points',
-        data,
-        dataTransform,
-        getPosition,
-        radiusUnits: 'pixels',
-        getRadius: 3,
-        getFillColor: [0, 0, 255],
+        id: 'highlighted-points',
+        getRadius: 5,
+        ...pointProps,
 
         extensions: [new CollideExtension()],
         collideEnabled,
@@ -92,15 +120,16 @@ export default function App() {
         outlineColor: [255, 255, 255],
         outlineWidth: 4,
 
-        getAlignmentBaseline: 'center',
-        getTextAnchor: 'start',
+        getTextAnchor: anchor,
+        getAlignmentBaseline: baseline,
+        // getPixelOffset: [20, 0],
 
         // pickable: true,
         getBorderColor: [255, 0, 0, 80],
         getBorderWidth: borderEnabled ? 1 : 0,
         getBackgroundColor: [0, 255, 0, 0],
         background: true, // Need otherwise no background layer rendered
-        backgroundPadding: [12 * fontSize, 0.75 * fontSize, 0, 0.75 * fontSize], // Offset in opposite direction to alignment/anchor
+        backgroundPadding,
 
         parameters: {depthTest: false},
         extensions: [new CollideExtension()],
@@ -111,6 +140,10 @@ export default function App() {
         collideTestProps: {
           // sizeScale: 4 // Enlarge text to increase hit area
           // sizeScale: 2
+        },
+
+        updateTriggers: {
+          getAlignmentBaseline: [baseline]
         }
       })
   ];
@@ -145,7 +178,29 @@ export default function App() {
           <input type="checkbox" checked={showLabels} onChange={() => setShowLabels(!showLabels)} />
           Show labels
         </label>
+        <ObjectSelect title="Anchor" obj={ANCHORS} value={anchor} onSelect={setAnchor} />
+        <ObjectSelect title="Baseline" obj={BASELINES} value={baseline} onSelect={setBaseline} />
       </div>
+    </>
+  );
+}
+
+function ObjectSelect({title, obj, value, onSelect}) {
+  const keys = Object.values(obj).sort();
+  return (
+    <>
+      <select
+        onChange={e => onSelect(e.target.value)}
+        style={{position: 'relative', padding: 4, margin: 2, width: 130}}
+        value={value}
+      >
+        <option hidden>{title}</option>
+        {keys.map(f => (
+          <option key={f} value={f}>
+            {`${title}: ${f}`}
+          </option>
+        ))}
+      </select>
     </>
   );
 }
