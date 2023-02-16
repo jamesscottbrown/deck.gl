@@ -38,14 +38,6 @@ export default function App() {
   const [showLabels, setShowLabels] = useState(true);
   const [selectedCounty, selectCounty] = useState(null);
 
-  const props = {
-    radiusUnits: 'pixels',
-    getRadius: 3,
-    // getFillColor: d => [25 * d.properties.scalerank, 255 - 25 * d.properties.scalerank, 123],
-    getFillColor: [0, 0, 255],
-    onClick: ({object}) => console.log(object.properties)
-  };
-
   const viewState = {
     longitude: -122.42177834,
     latitude: 37.78346622,
@@ -61,41 +53,46 @@ export default function App() {
     selectCounty(california);
   }, []);
 
+  const fontSize = 18;
+  const data = 'sf.bike.parking.json';
+  // const data = AIR_PORTS;
+  const getPosition = f => f.COORDINATES || f.geometry.coordinates;
+  const getText = f => f.ADDRESS || f.properties.name;
+  const dataTransform = d => (d.features ? d.features : d);
+
   const layers = [
     showPoints &&
       new ScatterplotLayer({
         id: 'points',
-        // data: PLACES,
-        data: 'sf.bike.parking.json',
-        getPosition: f => f.COORDINATES,
-
-        // pointType: 'circle',
-        ...props,
+        data,
+        dataTransform,
+        getPosition,
+        radiusUnits: 'pixels',
+        getRadius: 3,
+        getFillColor: [0, 0, 255],
 
         extensions: [new CollideExtension()],
         collideEnabled,
-        collideGroup: 'labels',
-        // getCollidePriority: d => d.properties.scalerank,
-        getCollidePriority: -400.8,
-        collideTestProps: {
-          pointAntialiasing: false, // Does this matter for collisions?
-          radiusScale: 2 // Enlarge point to increase hit area
-        }
+        collideGroup: 'labels'
       }),
     showLabels &&
       new TextLayer({
         id: 'collide-labels',
-        // data: AIR_PORTS,
-        data: 'sf.bike.parking.json',
-        // dataTransform: d => d.slice(240, 250),
+        data,
+        dataTransform,
 
-        getText: f => f.ADDRESS,
-        getColor: [0, 155, 0],
-        getSize: 24,
-        getPosition: f => f.COORDINATES,
+        getColor: [44, 48, 50],
+        getSize: fontSize,
+        getPosition,
+        getText,
+
+        // FONT
         fontFamily: 'Inter, sans',
+        fontSettings: {sdf: true},
+        outlineColor: [255, 255, 255],
+        outlineWidth: 4,
 
-        getAlignmentBaseline: 'bottom',
+        getAlignmentBaseline: 'center',
         getTextAnchor: 'start',
 
         // pickable: true,
@@ -103,14 +100,14 @@ export default function App() {
         getBorderWidth: borderEnabled ? 1 : 0,
         getBackgroundColor: [0, 255, 0, 0],
         background: true, // Need otherwise no background layer rendered
-        backgroundPadding: [250, 0, 0, 32],
+        backgroundPadding: [12 * fontSize, 0.75 * fontSize, 0, 0.75 * fontSize], // Offset in opposite direction to alignment/anchor
 
         parameters: {depthTest: false},
         extensions: [new CollideExtension()],
         // getCollidePriority: d => -d.properties.scalerank,
         collideEnabled,
         collideGroup: 'labels',
-        getCollidePriority: 0.4,
+        // getCollidePriority: 0.4,
         collideTestProps: {
           // sizeScale: 4 // Enlarge text to increase hit area
           // sizeScale: 2
@@ -120,7 +117,9 @@ export default function App() {
 
   return (
     <>
-      <DeckGL layers={layers} initialViewState={viewState} controller={true}></DeckGL>
+      <DeckGL layers={layers} initialViewState={viewState} controller={true}>
+        <StaticMap reuseMaps mapStyle={MAP_STYLE} preventStyleDiffing={true} />
+      </DeckGL>
       <div style={{left: 200, position: 'absolute', background: 'white', padding: 10}}>
         <label>
           <input
