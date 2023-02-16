@@ -13,25 +13,9 @@ const AIR_PORTS =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson';
 const PLACES =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_populated_places_simple.geojson';
-const COUNTRIES =
-  'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_admin_0_scale_rank.geojson';
-const US_STATES =
-  'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_1_states_provinces_shp.geojson'; //eslint-disable-line
+
 const ANCHORS = {start: 'start', middle: 'middle', end: 'end'};
 const BASELINES = {top: 'top', center: 'center', bottom: 'bottom'};
-
-const basemap = new GeoJsonLayer({
-  id: 'base-map',
-  data: COUNTRIES,
-  // Styles
-  stroked: true,
-  filled: true,
-  lineWidthMinPixels: 2,
-  opacity: 0.4,
-  getLineColor: [60, 60, 60],
-  getFillColor: [200, 200, 200]
-});
-
 const [LEFT, TOP, RIGHT, BOTTOM] = [0, 1, 2, 3];
 
 /* eslint-disable react/no-deprecated */
@@ -40,28 +24,21 @@ export default function App() {
   const [borderEnabled, setBorderEnabled] = useState(false);
   const [showPoints, setShowPoints] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
-  const [anchor, setAnchor] = useState('middle');
+  const [anchor, setAnchor] = useState('start');
   const [baseline, setBaseline] = useState('center');
 
-  const viewState = {
-    longitude: -122.42177834,
-    latitude: 37.78346622,
-    zoom: 12,
-    maxZoom: 20,
-    pitch: 0,
-    bearing: 0
-  };
+  const viewState = {longitude: -122, latitude: 37, zoom: 7};
 
-  const fontSize = 18;
-  const data = 'sf.bike.parking.json';
-  // const data = AIR_PORTS;
-  const getPosition = f => f.COORDINATES || f.geometry.coordinates;
-  const getText = f => f.ADDRESS || f.properties.name;
-  const dataTransform = d => (d.features ? d.features : d);
+  const fontSize = 16;
+  const data = PLACES;
+  const getPosition = f => f.geometry.coordinates;
+  const getText = f => f.properties.name;
+  const dataTransform = d => d.features;
 
-  const backgroundPadding = [0, 0, 0, 0]; // 12 * fontSize, 0.75 * fontSize, 0, 0.75 * fontSize]; // Offset in opposite direction to alignment/anchor
+  // Use heuristic to estimate typical size of text label
   const paddingX = 1.5 * fontSize;
   const paddingY = 8 * fontSize;
+  const backgroundPadding = [0, 0, 0, 0];
   if (baseline === 'top') {
     backgroundPadding[TOP] = paddingX;
   } else if (baseline === 'bottom') {
@@ -116,7 +93,7 @@ export default function App() {
         getText,
 
         // FONT
-        fontFamily: 'Inter, sans',
+        // fontFamily: 'Inter, sans',
         fontSettings: {sdf: true},
         outlineColor: [255, 255, 255],
         outlineWidth: 4,
@@ -138,6 +115,7 @@ export default function App() {
 
         _subLayerProps: {
           characters: {
+            // Only render background layer to collideMap
             collideWrite: false
           }
         },
