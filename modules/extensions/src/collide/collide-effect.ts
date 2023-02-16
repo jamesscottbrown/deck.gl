@@ -55,10 +55,18 @@ export default class CollideEffect implements Effect {
       return;
     }
 
-    const collideLayers = layers.filter(
-      // @ts-ignore
-      ({props: {visible, collideEnabled}}) => visible && collideEnabled
-    ) as Layer<CollideExtensionProps>[];
+    const collideLayers = layers
+      .filter(
+        // @ts-ignore
+        ({props: {visible, collideEnabled}}) => visible && collideEnabled
+      )
+      .filter(l => {
+        // HACK: don't draw the text layer
+        return !['MultiIconLayer'].includes(
+          // @ts-ignore
+          l.constructor.layerName
+        );
+      }) as Layer<CollideExtensionProps>[];
     if (collideLayers.length === 0) {
       this.channels = {};
       return;
