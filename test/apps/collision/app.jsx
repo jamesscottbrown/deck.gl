@@ -101,6 +101,7 @@ export default function App() {
 
         extensions: [new CollideExtension()],
         collideEnabled,
+        collideWrite: false,
         collideGroup: 'labels'
       }),
     showLabels &&
@@ -124,7 +125,6 @@ export default function App() {
         getAlignmentBaseline: baseline,
         // getPixelOffset: [20, 0],
 
-        // pickable: true,
         getBorderColor: [255, 0, 0, 80],
         getBorderWidth: borderEnabled ? 1 : 0,
         getBackgroundColor: [0, 255, 0, 0],
@@ -133,13 +133,13 @@ export default function App() {
 
         parameters: {depthTest: false},
         extensions: [new CollideExtension()],
-        // getCollidePriority: d => -d.properties.scalerank,
         collideEnabled,
         collideGroup: 'labels',
-        // getCollidePriority: 0.4,
-        collideTestProps: {
-          // sizeScale: 4 // Enlarge text to increase hit area
-          // sizeScale: 2
+
+        _subLayerProps: {
+          characters: {
+            collideWrite: false
+          }
         },
 
         updateTriggers: {

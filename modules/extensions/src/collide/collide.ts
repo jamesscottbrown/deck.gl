@@ -5,6 +5,7 @@ import CollideEffect from './collide-effect';
 const defaultProps = {
   getCollidePriority: {type: 'accessor', value: 0},
   collideEnabled: true,
+  collideWrite: true,
   collideGroup: {type: 'string', value: 'default'},
   collideTestProps: {}
 };
