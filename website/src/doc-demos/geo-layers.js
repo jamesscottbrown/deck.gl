@@ -113,6 +113,17 @@ export const H3ClusterLayerDemo = makeLayerDemo({
   }`
 });
 
+export const ImageryLayerDemo = makeLayerDemo({
+  Layer: ImageryLayer,
+  getTooltip: '({x,y}) => tile && `x:${x}, y:${y}`',
+  mapStyle: null,
+  props: `{
+    data: 'https://ows.terrestris.de/osm/service',
+    serviceType: 'wsm',
+    layers: ['OSM-WMS']
+  }`
+});
+
 export const TileLayerDemo = makeLayerDemo({
   Layer: TileLayer,
   getTooltip: '({tile}) => tile && `x:${tile.x}, y:${tile.y}, z:${tile.z}`',
