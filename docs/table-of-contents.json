@@ -224,11 +224,13 @@
             {"entry": "docs/api-reference/extensions/overview"},
             {"entry": "docs/api-reference/extensions/brushing-extension"},
             {"entry": "docs/api-reference/extensions/clip-extension"},
+            {"entry": "docs/api-reference/extensions/collide-extension"},
             {"entry": "docs/api-reference/extensions/data-filter-extension"},
             {"entry": "docs/api-reference/extensions/fill-style-extension"},
             {"entry": "docs/api-reference/extensions/fp64-extension"},
             {"entry": "docs/api-reference/extensions/mask-extension"},
-            {"entry": "docs/api-reference/extensions/path-style-extension"}
+            {"entry": "docs/api-reference/extensions/path-style-extension"},
+            {"entry": "docs/api-reference/extensions/terrain-extension"}
           ]
         },
         {
